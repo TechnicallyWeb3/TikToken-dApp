@@ -24,14 +24,17 @@
     <body>
         <div class="container" style="display: flex; justify-content: center;">
             <div class="form-container">
-                <input type="text" id="handleInput" placeholder="@tiktok_handle">
-                <button id="lookupButton" onclick="lookupHandle()">Lookup</button>
+                <form onsubmit="event.preventDefault(); lookupHandle();">
+                    <input type="text" id="handleInput" placeholder="@tiktok_handle">
+                    <button type="submit">Search</button>
+                </form>
                 <div id="resultContainer" style="display: none;">
                     <input type="text" id="addressInput" readonly placeholder="Ethereum Address">
                     <button id="copyAddressButton" onclick="copyAddress()">Copy</button>
                 </div>
             </div>
         </div>
+
         <script>
             const web3 = new Web3(Web3.givenProvider || 'https://rpc-mainnet.maticvigil.com');
 
