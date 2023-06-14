@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>TikTok Handle Lookup</title>
+        <style>
+            body {
+                background-color: black;
+            }
+            input[type="text"] {
+                background-color: white;
+                color: black;
+                padding: 10px;
+                width: 44ch; /* Set width to 44 characters */
+            }
+            button {
+                background-color: #fe2858;
+                color: white;
+                padding: 10px;
+                width: 80px; /* Set width to 80px */
+            }
+        </style>
+        <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
+    </head>
+    <body>
+        <div class="container" style="display: flex; justify-content: center;">
+            <div class="form-container">
+                <input type="text" id="handleInput" placeholder="@tiktok_handle">
+                <button id="lookupButton" onclick="lookupHandle()">Lookup</button>
+                <div id="resultContainer" style="display: none;">
+                    <input type="text" id="addressInput" readonly placeholder="Ethereum Address">
+                    <button id="copyAddressButton" onclick="copyAddress()">Copy</button>
+                </div>
+            </div>
+        </div>
+        <script>
+            const web3 = new Web3(Web3.givenProvider || 'https://rpc-mainnet.maticvigil.com');
+
+            function lookupHandle() {
+                const handleInput = document.getElementById("handleInput");
+                const handle = handleInput.value;
+
+                if (handle.startsWith("@")) {
+                    const handleWithoutAt = handle.substring(1); // Remove the "@" symbol
+
+                    const url = `https://tokcount.com/?user=${handleWithoutAt}`;
+
+                    fetch(url)
+                    .then(response => response.text())
+                    .then(data => {
+                        const parser = new DOMParser();
+                        const xmlDoc = parser.parseFromString(data, "text/html");
+                        
+                        const jsonScript = xmlDoc.evaluate('//*[@id="__NEXT_DATA__"]', xmlDoc, null, XPathResult.ANY_TYPE, null).iterateNext().innerHTML;
+                        const json = JSON.parse(jsonScript);
+
+                        const { userId, username} = json.props.pageProps.userData;
+
+                        console.log("User ID:", userId);
+                        console.log("Username:", username);
+                        console.log("Handle:", handle);
+
+                        getAddressFromID(userId)
+                    })
+                    .catch(error => console.error("An error occurred:", error));
+                } else {
+                    console.error("Invalid TikTok Handle. It should start with '@'.");
+                }
+            }
+            function getAddressFromID(id) {
+                const contractABI = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"string","name":"id","type":"string"},{"indexed":false,"internalType":"address","name":"oldAccount","type":"address"},{"indexed":false,"internalType":"address","name":"newAccount","type":"address"}],"name":"AddressUpdated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"halvingCount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"currentReward","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"remainingSupply","type":"uint256"}],"name":"HalvingOccurred","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"account","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"string","name":"id","type":"string"},{"indexed":false,"internalType":"uint256","name":"followers","type":"uint256"}],"name":"Minted","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"spender","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address[]","name":"accounts","type":"address[]"},{"internalType":"uint256[]","name":"followers","type":"uint256[]"},{"internalType":"string[]","name":"ids","type":"string[]"}],"name":"batchMint","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"currentReward","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"subtractedValue","type":"uint256"}],"name":"decreaseAllowance","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"getHalvingCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getNextHalving","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"id","type":"string"}],"name":"getUserAccount","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getUserCounter","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"getUserIDs","outputs":[{"internalType":"string[]","name":"","type":"string[]"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"id","type":"string"}],"name":"hasMinted","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"addedValue","type":"uint256"}],"name":"increaseAllowance","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"},{"internalType":"uint256","name":"followers","type":"uint256"},{"internalType":"string","name":"id","type":"string"}],"name":"mint","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"remainingSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"sender","type":"address"},{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"id","type":"string"},{"internalType":"address","name":"account","type":"address"}],"name":"updateAddress","outputs":[],"stateMutability":"nonpayable","type":"function"}] // ABI of the smart contract
+                const contractAddress = "0x359c3AD611e377e050621Fb3de1C2f4411684E92" // Address of the deployed smart contract
+                const contract = new web3.eth.Contract(contractABI, contractAddress);
+                
+                contract.methods.getUserAccount(id).call()
+                    .then(result => {
+                        console.log("Returned value:", result);
+                        showAddress(result)
+                    })
+                    .catch(error => {
+                        console.error("An error occurred:", error);
+                        showAddress("This user is not registered with TikToken")
+                    });
+            }
+            function showAddress(address) {
+                const resultContainer = document.getElementById("resultContainer");
+                const addressInput = document.getElementById("addressInput");
+                
+                // Update the input field with the address
+                addressInput.value = address;
+
+                // Show the result container
+                resultContainer.style.display = "block";
+            }
+
+            function copyAddress() {
+                const addressInput = document.getElementById("addressInput");
+                addressInput.select();
+                document.execCommand("copy");
+            }
+        </script>
+    </body>
+</html>
