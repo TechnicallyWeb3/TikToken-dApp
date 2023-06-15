@@ -77,7 +77,7 @@
 
             // Make an AJAX request to the server
             const xhr = new XMLHttpRequest();
-            xhr.open('GET', `http://localhost:3000/user?handle=${handleWithoutAt}`, true);
+            xhr.open('GET', `http://tiktoken.technicallyweb3.com:3000/user?handle=${handleWithoutAt}`, true);
             xhr.onreadystatechange = function () {
               if (xhr.readyState === XMLHttpRequest.DONE) {
                 if (xhr.status === 200) {
