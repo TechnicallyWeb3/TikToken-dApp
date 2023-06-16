@@ -67,11 +67,12 @@
     const web3 = new Web3(Web3.givenProvider || 'https://rpc-mainnet.maticvigil.com');
 
     function lookupHandle() {
-        document.getElementById("addressInput").value = 'Looking up address for '+ handle;
 
         const handleInput = document.getElementById("handleInput");
         const handle = handleInput.value;
 
+        document.getElementById("addressInput").value = 'Looking up address for '+ handle;
+        
         if (handle.startsWith("@")) {
             const handleWithoutAt = handle.substring(1); // Remove the "@" symbol
 
