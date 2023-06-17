@@ -7,6 +7,14 @@ const web3 = new Web3('https://rpc-mainnet.maticvigil.com');
 const app = express();
 const port = 8080;
 
+// Enable CORS for all routes
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', 'https://tiktoken.technicallyweb3.com');
+  res.setHeader('Access-Control-Allow-Methods', 'GET');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+});
+
 app.get('/user', async (req, res) => {
   try {
     const { handle } = req.query;
