@@ -1,5 +1,8 @@
 const express = require('express');
 const axios = require('axios');
+const {Web3} = require('web3');
+
+const web3 = new Web3('https://rpc-mainnet.maticvigil.com');
 
 const app = express();
 const port = 8080;
@@ -15,14 +18,47 @@ app.get('/user', async (req, res) => {
     const jsonScript = response.data.match(/<script id="__NEXT_DATA__" type="application\/json">(.*?)<\/script>/)[1];
     const json = JSON.parse(jsonScript);
 
-    const { userId, username } = json.props.pageProps.userData;
+    const { userId, username, stats } = json.props.pageProps.userData;
+    const followers = stats.followers;
 
     console.log("Username:", username);
     console.log("Handle:", handle);
     console.log("ID:", userId);
+    console.log("Followers:", followers);
 
-    // Forward the response data to the client
-    res.send(userId);
+    // Create the TikTok user object
+    const tiktokUser = {
+      id: userId,
+      username: username,
+      handle: handle,
+      followers: followers
+    };
+
+    console.log("TikTok ID found:", tiktokUser);
+    const contractABI = require('./abi.json'); // ABI of the smart contract
+    console.log("ABI:", contractABI);
+    const contractAddress = "0x359c3AD611e377e050621Fb3de1C2f4411684E92"; // Address of the deployed smart contract
+    console.log("Attempting interaction with smart contract at address:", contractAddress);
+    const contract = new web3.eth.Contract(contractABI, contractAddress);
+    
+    try {
+      const address = await contract.methods.getUserAccount(userId).call();
+      console.log("Address:", address);
+      // Create the high-level response object
+      const responseObj = {
+        'tiktok-user': tiktokUser,
+        'linked-wallet': address
+      };
+      
+      // Forward the response data to the client
+      res.json(responseObj);
+      
+    } catch (error) {
+      console.error("An error occurred while calling the contract method:", error);
+    }
+    console.log("Address:", address);
+    
+    
   } catch (error) {
     // Handle any errors that occur during the proxy request
     res.status(500).send('Error occurred while fetching data');
@@ -32,6 +68,8 @@ app.get('/user', async (req, res) => {
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
+
+
 
 
 
