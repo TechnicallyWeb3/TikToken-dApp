@@ -3,6 +3,9 @@ const axios = require('axios');
 const {Web3} = require('web3');
 
 const web3 = new Web3('https://rpc-mainnet.maticvigil.com');
+const contractABI = require('./abi.json'); // ABI of the smart contract
+const contractAddress = "0x359c3AD611e377e050621Fb3de1C2f4411684E92"; // Address of the deployed smart contract
+const contract = new web3.eth.Contract(contractABI, contractAddress);
 
 const app = express();
 const port = 8080;
@@ -41,17 +44,10 @@ app.get('/user', async (req, res) => {
       handle: handle,
       followers: followers
     };
-
-    console.log("TikTok ID found:", tiktokUser);
-    const contractABI = require('./abi.json'); // ABI of the smart contract
-    console.log("ABI:", contractABI);
-    const contractAddress = "0x359c3AD611e377e050621Fb3de1C2f4411684E92"; // Address of the deployed smart contract
-    console.log("Attempting interaction with smart contract at address:", contractAddress);
-    const contract = new web3.eth.Contract(contractABI, contractAddress);
     
     try {
       const address = await contract.methods.getUserAccount(userId).call();
-      console.log("Address:", address);
+      console.log("Address for", userId,":", address);
       // Create the high-level response object
       const responseObj = {
         'tiktok-user': tiktokUser,
@@ -64,13 +60,52 @@ app.get('/user', async (req, res) => {
     } catch (error) {
       console.error("An error occurred while calling the contract method:", error);
     }
-    console.log("Address:", address);
     
     
   } catch (error) {
     // Handle any errors that occur during the proxy request
     res.status(500).send('Error occurred while fetching data');
   }
+});
+
+app.get('/stats', async (req, res) => {
+try {
+  const totalSupply = await contract.methods.totalSupply().call();
+  console.log("Total Supply: ",totalSupply)
+  const remainingSupply = await contract.methods.remainingSupply().call();
+  console.log("Remaining Supply: ",remainingSupply)
+  const nextHalving = await contract.methods.getNextHalving().call();
+  console.log("Next Halving: ",nextHalving)
+  const halvingCount = await contract.methods.getHalvingCount().call();
+  console.log("Halving Count: ",halvingCount)
+  const userCounter = await contract.methods.getUserCounter().call();
+  console.log("Users: ",userCounter)
+
+  const totalSupplyDec = Number(totalSupply) / 10 ** 18;
+  const remainingSupplyDec = Number(remainingSupply) / 10 ** 18;
+  const nextHalvingDec = Number(nextHalving) / 10 ** 18;
+  const halvingCountDec = Number(halvingCount)
+  const userCounterDec = Number(userCounter)
+
+  // Create the high-level response object
+  const responseObj = {
+    totalSupply: totalSupplyDec,
+    remainingSupply: remainingSupplyDec,
+    nextHalving: nextHalvingDec,
+    halvingCount: halvingCountDec,
+    userCounter: userCounterDec
+  };
+  // Forward the response data to the client
+  console.log("JSON", responseObj);
+  console.log("Total Supply (Decimal):", totalSupplyDec);
+
+  // Forward the response data to the client
+  res.json(responseObj);
+
+}catch (error) {
+  // Handle any errors that occur during the stats
+  res.status(500).send("500 Error:");
+}
 });
 
 app.listen(port, () => {
