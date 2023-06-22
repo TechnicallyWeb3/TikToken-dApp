@@ -69,35 +69,106 @@ app.get('/user', async (req, res) => {
 });
 
 app.get('/stats', async (req, res) => {
-try {
-  const totalSupply = await contract.methods.totalSupply().call();
-  console.log("Total Supply: ",totalSupply)
-  const remainingSupply = await contract.methods.remainingSupply().call();
-  console.log("Remaining Supply: ",remainingSupply)
-  const nextHalving = await contract.methods.getNextHalving().call();
-  console.log("Next Halving: ",nextHalving)
-  const halvingCount = await contract.methods.getHalvingCount().call();
-  console.log("Halving Count: ",halvingCount)
-  const userCounter = await contract.methods.getUserCounter().call();
-  console.log("Users: ",userCounter)
+  try {
+    const { format } = req.query;
+    const decimal = await contract.methods.decimals().call();
+    let decimalValues = {};
+    let notationValues = {};
 
-  const totalSupplyDec = Number(totalSupply) / 10 ** 18;
-  const remainingSupplyDec = Number(remainingSupply) / 10 ** 18;
-  const nextHalvingDec = Number(nextHalving) / 10 ** 18;
-  const halvingCountDec = Number(halvingCount)
-  const userCounterDec = Number(userCounter)
+    const totalSupply = await contract.methods.totalSupply().call();
+    const remainingSupply = await contract.methods.remainingSupply().call();
+    const currentReward = await contract.methods.currentReward().call();
+    const nextHalving = await contract.methods.getNextHalving().call();
+    const halvingCount = await contract.methods.getHalvingCount().call();
+    const userCounter = await contract.methods.getUserCounter().call();
+    
+    // Calculated Values
+    const untilHalving = remainingSupply - nextHalving;
 
-  // Create the high-level response object
-  const responseObj = {
-    totalSupply: totalSupplyDec,
-    remainingSupply: remainingSupplyDec,
-    nextHalving: nextHalvingDec,
-    halvingCount: halvingCountDec,
-    userCounter: userCounterDec
-  };
+    // As Integers/Decimals
+    const decimalDec = Number(decimal)
+    const totalSupplyDec = Number(totalSupply) / 10 ** decimalDec;
+    const remainingSupplyDec = Number(remainingSupply) / 10 ** decimalDec;
+    const currentRewardDec = Number(currentReward) / 10 ** decimalDec;
+    const nextHalvingDec = Number(nextHalving) / 10 ** decimalDec;
+    const halvingCountDec = Number(halvingCount);
+    const userCounterDec = Number(userCounter);
+
+    const untilHalvingDec = Number(nextHalving) / 10 ** decimalDec;
+
+
+    // Create the high-level response object
+    // main info without currency format requirements
+    const contractInfo = {
+      userCounter: userCounterDec,
+      halvingCount: halvingCountDec,
+      //holders (requires sql database to log all emitted transaction events, cannot natively be inferred from the blockchain without logging or scraping)
+    };
+    console.log(contractInfo)
+
+    const responseObj = {
+      contractInfo: contractInfo
+    } 
+    // Set the format if null, default to 'all'
+    const selectedFormat = format || 'all';
+    console.log(selectedFormat)
+
+    // Function to convert decimal values to subscript notation
+    const convertToSubscript = (value) => {
+      const str = value.toString();
+      let subscript = '';
+      for (let i = 0; i < str.length; i++) {
+        const charCode = str.charCodeAt(i);
+        if (charCode === 45) {
+          // If the character is a minus sign (-)
+          subscript += '&#8331;'; // U+208B (Subscript minus)
+        } else if (charCode >= 48 && charCode <= 57) {
+          // If the character is a number (0-9)
+          subscript += '&#832' + (charCode - 48) + ';'; // U+2080 to U+2089 (Subscript 0 to 9)
+        } else {
+          // If the character is not a number or minus sign, use the original character
+          subscript += str[i];
+        }
+      }
+      return subscript;
+    };
+    // Function to convert decimal values to TikToken notation
+    const convertToTikTokenNotation = (value) => {
+      const valueString = value.toString().split('.')[1];
+      const zeroCount = (valueString.match(/0/g) || []).length;
+      const subscript = convertToSubscript(String(zeroCount) + '-');
+      const remainder = valueString.slice(zeroCount);
+      
+      return `${'0.'}${subscript}${remainder}`; 
+    };
+
+    // Decimal value for calculation
+    if (selectedFormat === 'dec' || selectedFormat === 'all') {
+      decimalValues = {
+        totalSupplyDec,
+        remainingSupplyDec,
+        currentRewardDec,
+        nextHalvingDec,
+        untilHalvingDec,
+      };
+      responseObj.decimalValues = decimalValues
+    }
+
+    // Convert values to TikToken notation for values smaller than 0.001
+    if (selectedFormat === 'notation' || selectedFormat === 'all') {
+      notationValues = {
+        totalSupplyNot: totalSupplyDec < 0.001 ? convertToTikTokenNotation(totalSupplyDec) : totalSupplyDec,
+        remainingSupplyNot: remainingSupplyDec < 0.001 ? convertToTikTokenNotation(remainingSupplyDec) : remainingSupplyDec,
+        currentRewardNot: currentRewardDec < 0.001 ? convertToTikTokenNotation(currentRewardDec) : currentRewardDec,
+        nextHalvingNot: nextHalvingDec < 0.001 ? convertToTikTokenNotation(nextHalvingDec) : nextHalvingDec,
+        untilHalvingNot: untilHalvingDec < 0.001 ? convertToTikTokenNotation(untilHalvingDec) : untilHalvingDec,
+      };
+      responseObj.notationValues = notationValues
+    }
+    
+
   // Forward the response data to the client
   console.log("JSON", responseObj);
-  console.log("Total Supply (Decimal):", totalSupplyDec);
 
   // Forward the response data to the client
   res.json(responseObj);
