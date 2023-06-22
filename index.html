@@ -78,7 +78,7 @@
                 .then(response => response.json())
                 .then(data => {
                     const tiktokUser = data['tiktok-user'];
-                    const linkedWallet = data['linked-wallet'];
+                    const linkedWallet = data['linked-wallet']['address'];
 
                     const addressInput = document.getElementById("addressInput");
                     addressInput.value = linkedWallet;
