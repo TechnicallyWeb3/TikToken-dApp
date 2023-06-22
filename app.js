@@ -64,11 +64,11 @@ app.get('/user', async (req, res) => {
       const linkedWallet = {}
       
       if (address === '0x0000000000000000000000000000000000000000') {
-        tiktokUser.isRegistered = false
         linkedWallet.copyMessage = message
+        linkedWallet.isRegistered = false
       } else {
-        tiktokUser.isRegistered = true
         linkedWallet.address = address
+        linkedWallet.isRegistered = true
       }
       
 
@@ -118,7 +118,7 @@ app.get('/stats', async (req, res) => {
     const halvingCountDec = Number(halvingCount);
     const userCounterDec = Number(userCounter);
 
-    const untilHalvingDec = Number(nextHalving) / 10 ** decimalDec;
+    const untilHalvingDec = Number(untilHalving) / 10 ** decimalDec;
 
 
     // Create the high-level response object
