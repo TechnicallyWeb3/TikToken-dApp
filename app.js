@@ -4,8 +4,11 @@ const {Web3} = require('web3');
 
 const web3 = new Web3('https://rpc-mainnet.maticvigil.com');
 const contractABI = require('./abi.json'); // ABI of the smart contract
+const { link } = require('fs');
 const contractAddress = "0x359c3AD611e377e050621Fb3de1C2f4411684E92"; // Address of the deployed smart contract
 const contract = new web3.eth.Contract(contractABI, contractAddress);
+
+const message = "Hey, I tried to send crypto to you, but you haven't registered your handle with TikToken yet, head over to technicallyweb3.com to link your wallet and I'll try again later!"
 
 const app = express();
 const port = 8080;
@@ -36,22 +39,43 @@ app.get('/user', async (req, res) => {
     console.log("Handle:", handle);
     console.log("ID:", userId);
     console.log("Followers:", followers);
+    hasMinted = false;
+
+    try {
+      hasMinted = await contract.methods.hasMinted(userId).call();
+      //rest of code?
+    } catch (error) {
+      console.error("An error occurred while calling the contract method:", error);
+    }
 
     // Create the TikTok user object
     const tiktokUser = {
       id: userId,
       username: username,
       handle: handle,
-      followers: followers
+      followers: followers,
+      hasMinted: hasMinted
     };
     
     try {
       const address = await contract.methods.getUserAccount(userId).call();
       console.log("Address for", userId,":", address);
+
+      const linkedWallet = {}
+      
+      if (address === '0x0000000000000000000000000000000000000000') {
+        tiktokUser.isRegistered = false
+        linkedWallet.copyMessage = message
+      } else {
+        tiktokUser.isRegistered = true
+        linkedWallet.address = address
+      }
+      
+
       // Create the high-level response object
       const responseObj = {
         'tiktok-user': tiktokUser,
-        'linked-wallet': address
+        'linked-wallet': linkedWallet
       };
       
       // Forward the response data to the client
