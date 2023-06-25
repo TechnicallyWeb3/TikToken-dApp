@@ -5,6 +5,8 @@ const {Web3} = require('web3');
 const web3 = new Web3('https://rpc-mainnet.maticvigil.com');
 const contractABI = require('./abi.json'); // ABI of the smart contract
 const { link } = require('fs');
+const { error } = require('console');
+const { hasSubscribers } = require('diagnostics_channel');
 const contractAddress = "0x359c3AD611e377e050621Fb3de1C2f4411684E92"; // Address of the deployed smart contract
 const contract = new web3.eth.Contract(contractABI, contractAddress);
 
@@ -23,22 +25,44 @@ app.use((req, res, next) => {
 
 app.get('/user', async (req, res) => {
   try {
-    const { handle } = req.query;
-    const url = `https://tokcount.com/?user=${handle}`;
+    const { handle, id } = req.query;
 
-    // Make a request to the target website
-    const response = await axios.get(url);
-    
-    const jsonScript = response.data.match(/<script id="__NEXT_DATA__" type="application\/json">(.*?)<\/script>/)[1];
-    const json = JSON.parse(jsonScript);
+      // Create the TikTok user object
+      const tiktokUser = {
+        id: id,
+        handle: handle
+      };
+  
+    if (!id) {
+      console.log("ID not provided")
+      const url = `https://tokcount.com/?user=${handle}`;
+  
+      // Make a request to the target website
+      const response = await axios.get(url);
+      
+      const jsonScript = response.data.match(/<script id="__NEXT_DATA__" type="application\/json">(.*?)<\/script>/)[1];
+      const json = JSON.parse(jsonScript);
+  
+      const { userId: fetchedUserId, username: fetchedUsername, stats } = json.props.pageProps.userData;
+      followers = stats.followers;
+  
+      // Assign values to the variables
+      userId = fetchedUserId;
+      username = fetchedUsername;
 
-    const { userId, username, stats } = json.props.pageProps.userData;
-    const followers = stats.followers;
+      tiktokUser.id = userId;
+      tiktokUser.username;
+      tiktokUser.followers;
 
-    console.log("Username:", username);
-    console.log("Handle:", handle);
+      console.log("Username:", username);
+      console.log("Handle:", handle);
+      console.log("Followers:", followers);
+
+    } else {
+      userId = id;
+    }
+  
     console.log("ID:", userId);
-    console.log("Followers:", followers);
 
     hasMinted = false;
 
@@ -48,15 +72,8 @@ app.get('/user', async (req, res) => {
     } catch (error) {
       console.error("An error occurred while calling the contract method:", error);
     }
-
-    // Create the TikTok user object
-    const tiktokUser = {
-      id: userId,
-      username: username,
-      handle: handle,
-      followers: followers,
-      hasMinted: hasMinted
-    };
+    tiktokUser.hasMinted = hasMinted
+    console.log("Has Minted:", hasMinted)
     
     try {
       const address = await contract.methods.getUserAccount(userId).call();
