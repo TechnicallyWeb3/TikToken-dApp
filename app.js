@@ -154,7 +154,7 @@ app.get('/stats', async (req, res) => {
     } 
     // Set the format if null, default to 'all'
     const selectedFormat = format || 'all';
-    console.log(selectedFormat)
+    console.log("Selected Format: ",selectedFormat)
 
     // Function to convert decimal values to subscript notation
     const convertToSubscript = (value) => {
@@ -185,11 +185,43 @@ app.get('/stats', async (req, res) => {
       return `${'0.'}${subscript}${remainder}`; 
     };
 
-    const convertToTikTokenString = (value) => {
+    function removeTrailingZeros(inputString) {
+      let output = inputString;
+      while (output.length > 0 && (output.slice(-1) === '0' || output.slice(-1) === ',')) {
+        output = output.slice(0, -1);
+      }
+      return output;
+    }
+
+    function addLeadingZeros(value) {
       valueDigits = value.toString().length;
-      leadingZeros = decimalDec - valueDigits; 
-      valueString = value.toLocaleString();
-      console.log("Digits")
+      console.log("Digits: ", valueDigits)
+      if (valueDigits < 18) {        
+        const leadingZeros = decimalDec - valueDigits; 
+        console.log("Leading Zeros: ", leadingZeros)
+
+        const leadingValue = 1 * 10 ** decimalDec;
+        let leadingString = leadingValue.toLocaleString();
+        leadingString = leadingString.substring(2); //remove 1,
+        const removeString = leadingZeros + (leadingZeros%3);
+        console.log("Remove String: ",removeString)
+        leadingString = leadingString.substring(0 , removeString); //remove last digits
+        console.log("Leading String: ", leadingString)
+        valueString = leadingString + value.toLocaleString();
+        console.log("Value String: ", valueString)
+
+        return valueString
+      } else {
+        return value.toLocaleString()
+      }
+    }
+
+    const convertToTikTokenString = (value) => {
+      let leadingValue = addLeadingZeros(value)
+      let valueString = removeTrailingZeros(leadingValue);      
+      valueString = "0." + valueString;
+      console.log("Value String: ", valueString)
+      return valueString;
     }
 
     // Decimal value for calculation
@@ -220,9 +252,9 @@ app.get('/stats', async (req, res) => {
 if (selectedFormat === 'string' || selectedFormat === 'all') {
   stringValues = {
     totalSupplyStr: convertToTikTokenString(totalSupply),
-    remainingSupplyStr: convertToTikTokenString(remainingSupplyDec),
-    currentRewardStr: convertToTikTokenString(currentRewardDec),
-    nextHalvingStr: convertToTikTokenString(nextHalvingDec),
+    remainingSupplyStr: convertToTikTokenString(remainingSupply),
+    currentRewardStr: convertToTikTokenString(currentReward),
+    nextHalvingStr: convertToTikTokenString(nextHalving),
     untilHalvingStr: convertToTikTokenString(untilHalving),
   };
   responseObj.stringValues = stringValues;
