@@ -195,20 +195,20 @@ app.get('/stats', async (req, res) => {
 
     function addLeadingZeros(value) {
       valueDigits = value.toString().length;
-      console.log("Digits: ", valueDigits)
+      // console.log("Digits: ", valueDigits)
       if (valueDigits < 18) {        
         const leadingZeros = decimalDec - valueDigits; 
-        console.log("Leading Zeros: ", leadingZeros)
+        // console.log("Leading Zeros: ", leadingZeros)
 
         const leadingValue = 1 * 10 ** decimalDec;
         let leadingString = leadingValue.toLocaleString();
         leadingString = leadingString.substring(2); //remove 1,
         const removeString = leadingZeros + (leadingZeros%3);
-        console.log("Remove String: ",removeString)
+        // console.log("Remove String: ",removeString)
         leadingString = leadingString.substring(0 , removeString); //remove last digits
-        console.log("Leading String: ", leadingString)
+        // console.log("Leading String: ", leadingString)
         valueString = leadingString + value.toLocaleString();
-        console.log("Value String: ", valueString)
+        // console.log("Value String: ", valueString)
 
         return valueString
       } else {
@@ -220,7 +220,7 @@ app.get('/stats', async (req, res) => {
       let leadingValue = addLeadingZeros(value)
       let valueString = removeTrailingZeros(leadingValue);      
       valueString = "0." + valueString;
-      console.log("Value String: ", valueString)
+      // console.log("Value String: ", valueString)
       return valueString;
     }
 
