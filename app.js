@@ -27,14 +27,13 @@ app.get('/user', async (req, res) => {
   try {
     const { handle, id } = req.query;
 
-      // Create the TikTok user object
-      const tiktokUser = {
-        id: id,
-        handle: handle
-      };
+    // Create the TikTok user object
+    const tiktokUser = {
+      id: id,
+      handle: handle
+    };
   
     if (!id) {
-      console.log("ID not provided")
       const url = `https://tokcount.com/?user=${handle}`;
   
       // Make a request to the target website
@@ -43,16 +42,18 @@ app.get('/user', async (req, res) => {
       const jsonScript = response.data.match(/<script id="__NEXT_DATA__" type="application\/json">(.*?)<\/script>/)[1];
       const json = JSON.parse(jsonScript);
   
-      const { userId: fetchedUserId, username: fetchedUsername, stats } = json.props.pageProps.userData;
+      const { userId: fetchedUserId, username: fetchedUsername, avatar:fetchedAvatarURL, stats } = json.props.pageProps.userData;
       followers = stats.followers;
   
       // Assign values to the variables
       userId = fetchedUserId;
       username = fetchedUsername;
+      avatarURL = fetchedAvatarURL;
 
       tiktokUser.id = userId;
       tiktokUser.username = username;
       tiktokUser.followers = followers;
+      tiktokUser.avatarURL = avatarURL;
 
       console.log("Username:", username);
       console.log("Handle:", handle);
