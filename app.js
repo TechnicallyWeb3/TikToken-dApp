@@ -51,8 +51,8 @@ app.get('/user', async (req, res) => {
       username = fetchedUsername;
 
       tiktokUser.id = userId;
-      tiktokUser.username;
-      tiktokUser.followers;
+      tiktokUser.username = username;
+      tiktokUser.followers = followers;
 
       console.log("Username:", username);
       console.log("Handle:", handle);
@@ -184,6 +184,13 @@ app.get('/stats', async (req, res) => {
       return `${'0.'}${subscript}${remainder}`; 
     };
 
+    const convertToTikTokenString = (value) => {
+      valueDigits = value.toString().length;
+      leadingZeros = decimalDec - valueDigits; 
+      valueString = value.toLocaleString();
+      console.log("Digits")
+    }
+
     // Decimal value for calculation
     if (selectedFormat === 'dec' || selectedFormat === 'all') {
       decimalValues = {
@@ -208,6 +215,17 @@ app.get('/stats', async (req, res) => {
       responseObj.notationValues = notationValues
     }
     
+    // Add string format with comma separators
+if (selectedFormat === 'string' || selectedFormat === 'all') {
+  stringValues = {
+    totalSupplyStr: convertToTikTokenString(totalSupply),
+    remainingSupplyStr: convertToTikTokenString(remainingSupplyDec),
+    currentRewardStr: convertToTikTokenString(currentRewardDec),
+    nextHalvingStr: convertToTikTokenString(nextHalvingDec),
+    untilHalvingStr: convertToTikTokenString(untilHalving),
+  };
+  responseObj.stringValues = stringValues;
+}
 
   // Forward the response data to the client
   console.log("JSON", responseObj);
