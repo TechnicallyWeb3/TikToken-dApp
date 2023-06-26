@@ -42,18 +42,27 @@ app.get('/user', async (req, res) => {
       const jsonScript = response.data.match(/<script id="__NEXT_DATA__" type="application\/json">(.*?)<\/script>/)[1];
       const json = JSON.parse(jsonScript);
   
-      const { userId: fetchedUserId, username: fetchedUsername, avatar:fetchedAvatarURL, stats } = json.props.pageProps.userData;
+      const { userId: fetchedUserId, username: fetchedUsername, signature:fetchedBio, avatar:fetchedAvatarURL, stats } = json.props.pageProps.userData;
       followers = stats.followers;
+      following = stats.following;
+      likes = stats.likes;
+      videos = stats.videos;
+
   
       // Assign values to the variables
       userId = fetchedUserId;
       username = fetchedUsername;
+      bio = fetchedBio
       avatarURL = fetchedAvatarURL;
 
       tiktokUser.id = userId;
       tiktokUser.username = username;
-      tiktokUser.followers = followers;
+      tiktokUser.bio = bio;
       tiktokUser.avatarURL = avatarURL;
+      tiktokUser.followers = followers;
+      tiktokUser.following = following;
+      tiktokUser.likes = likes;
+      tiktokUser.videos = videos;
 
       console.log("Username:", username);
       console.log("Handle:", handle);
