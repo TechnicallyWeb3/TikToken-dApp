@@ -87,7 +87,10 @@ app.get('/user', async (req, res) => {
     
     try {
       const address = await contract.methods.getUserAccount(userId).call();
-      console.log("Address for", userId,":", address);
+      const balance = await contract.methods.balanceOf(address).call();
+      const balanceDec = Number(balance) / 10 ** 18;
+
+      console.log("Address for", userId,":", address, "Balance:", balanceDec);
 
       const linkedWallet = {}
       
@@ -96,6 +99,7 @@ app.get('/user', async (req, res) => {
         linkedWallet.isRegistered = false
       } else {
         linkedWallet.address = address
+        linkedWallet.balanceDec = balanceDec
         linkedWallet.isRegistered = true
       }
       
