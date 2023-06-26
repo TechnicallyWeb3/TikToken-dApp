@@ -25,7 +25,7 @@ app.use((req, res, next) => {
 
 app.get('/user', async (req, res) => {
   try {
-    const { handle, id } = req.query;
+    const { handle, id, platform } = req.query;
 
     // Create the TikTok user object
     const tiktokUser = {
@@ -93,6 +93,7 @@ app.get('/user', async (req, res) => {
       console.log("Address for", userId,":", address, "Balance:", balanceDec);
 
       const linkedWallet = {}
+      const linkedAccounts = {}
       
       if (address === '0x0000000000000000000000000000000000000000') {
         linkedWallet.copyMessage = message
@@ -101,14 +102,24 @@ app.get('/user', async (req, res) => {
         linkedWallet.address = address
         linkedWallet.balanceDec = balanceDec
         linkedWallet.isRegistered = true
-      }
+
+        const selectedPlatform = platform || 'all';
+        const linkedIds = await contract.methods.getUserIDs(address).call();
+        console.log(linkedIds)
+        linkedAccounts.address = address,
+        linkedAccounts.linkedIds = linkedIds
+      } 
+      
       
 
       // Create the high-level response object
       const responseObj = {
         'tiktok-user': tiktokUser,
-        'linked-wallet': linkedWallet
+        'linked-wallet': linkedWallet,
+        'linked-accounts': linkedAccounts
       };
+
+      console.log(responseObj)
       
       // Forward the response data to the client
       res.json(responseObj);
@@ -283,6 +294,28 @@ if (selectedFormat === 'string' || selectedFormat === 'all') {
   // Handle any errors that occur during the stats
   res.status(500).send("500 Error:");
 }
+});
+
+
+
+app.get('/accounts', async (req, res) => {
+  try {
+    const { address, platform } = req.query;
+    const selectedPlatform = platform || 'all';
+    console.log(selectedPlatform)
+    const linkedIds = await contract.methods.getUserIDs(address).call();
+    console.log(linkedIds)
+    const responseObj = {
+      address: address,
+      linkedIds: linkedIds
+    }
+
+    res.json(responseObj);
+
+  }catch (error) {
+    // Handle any errors that occur during the stats
+    res.status(500).send("500 Error:");
+  }
 });
 
 app.listen(port, () => {
