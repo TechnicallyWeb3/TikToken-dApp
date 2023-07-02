@@ -1,14 +1,18 @@
 const express = require('express');
 const axios = require('axios');
-const {Web3} = require('web3');
+const cheerio = require('cheerio')
 
+
+const {Web3} = require('web3');
 const web3 = new Web3('https://rpc-mainnet.maticvigil.com');
 const contractABI = require('./abi.json'); // ABI of the smart contract
+const contractAddress = "0x359c3AD611e377e050621Fb3de1C2f4411684E92"; // Address of the deployed smart contract
+const contract = new web3.eth.Contract(contractABI, contractAddress);
+
+
 const { link } = require('fs');
 const { error } = require('console');
 const { hasSubscribers } = require('diagnostics_channel');
-const contractAddress = "0x359c3AD611e377e050621Fb3de1C2f4411684E92"; // Address of the deployed smart contract
-const contract = new web3.eth.Contract(contractABI, contractAddress);
 
 const message = "Hey, I tried to send crypto to you, but you haven't registered your handle with TikToken yet, head over to technicallyweb3.com to link your wallet and I'll try again later!"
 
@@ -296,7 +300,46 @@ if (selectedFormat === 'string' || selectedFormat === 'all') {
 }
 });
 
+app.get('/verify', async (req, res) => {
+  try {
+    const { url, uniqueId } = req.query;
 
+    // Set the User-Agent header to simulate a mobile device
+    const headers = { 'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1' };
+
+    // Make a GET request to the provided URL with the mobile User-Agent header
+    const response = await axios.get(url, { headers });
+
+    // Load the HTML content using Cheerio
+    const $ = cheerio.load(response.data);
+
+    // Extract data using document.querySelector("#SIGI_STATE")
+    const sigiState = $('#SIGI_STATE').html();
+
+    // Parse the extracted data (assuming it's in JSON format)
+    const data = JSON.parse(sigiState);
+
+    const shareUser = data?.SharingVideoModule?.videoData?.shareUser;
+    console.log(shareUser.uniqueId)
+    console.log(uniqueId)
+    console.log(shareUser.uniqueId == uniqueId)
+
+    if (shareUser === undefined) {
+      // If SharingVideoModule.videoData.shareUser is undefined, respond FALSE
+      res.json({ result: false });
+    } else {
+      // If SharingVideoModule.videoData.shareUser exists, check uniqueId
+      if (shareUser.uniqueId === uniqueId) {
+        res.json({ result: true });
+      } else {
+        res.json({ result: false });
+      }
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 app.get('/accounts', async (req, res) => {
   try {
